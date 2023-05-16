@@ -138,3 +138,82 @@ func UserhandlerUpdate(c *fiber.Ctx) error {
 		// "body":    userRequest,
 	})
 }
+
+func UserhandlerUpdateEmail(c *fiber.Ctx) error {
+	userEmailRequest := new(request.UserEmailRequest)
+
+	if err := c.BodyParser(userEmailRequest); err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	var user entity.User
+	var isEmailExist entity.User
+
+	// Check User Exist
+	userId := c.Params("id")
+
+	err := database.DB.First(&user, "id = ?", &userId).Error
+
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// Check email exist
+	errCheckEmail := database.DB.First(&isEmailExist, "email = ?", &userEmailRequest.Email).Error
+	if errCheckEmail == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "email already exist",
+		})
+	}
+
+	// Update email
+	if userEmailRequest.Email != "" {
+		user.Email = userEmailRequest.Email
+	}
+
+	errUpdate := database.DB.Save(user).Error
+
+	if errUpdate != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "success",
+		"data":    user,
+		// "body":    userRequest,
+	})
+}
+
+func UserHandlerDelete(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	var user entity.User
+
+	// check if user is exist
+	errCheckUser := database.DB.First(&user, "id = ?", userId).Error
+
+	if errCheckUser != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "user doesn't exist",
+		})
+	}
+
+	// delete user by id
+	errDeleteUser := database.DB.Delete(&user).Error
+
+	if errDeleteUser != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": errDeleteUser.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "delete successful",
+	})
+}

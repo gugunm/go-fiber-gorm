@@ -7,6 +7,7 @@ import (
 )
 
 func RouteInit(app *fiber.App) {
+	app.Static("/public", "./public/asset")
 	app.Get("/users", controller.UserHandlerGetAll)
 	app.Get("/users/:id", controller.UserHandlerGetById)
 	app.Post("/users", controller.UserHandlerCreate)

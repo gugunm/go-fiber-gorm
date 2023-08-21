@@ -19,5 +19,5 @@ func main() {
 	// initial route
 	route.RouteInit(app)
 
-	app.Listen(":3000")
+	app.Listen(":8080")
 }
